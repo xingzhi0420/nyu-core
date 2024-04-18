@@ -1,6 +1,9 @@
-#include <iostream>
-#include <vector>
-#include <bitset>
+#include <cstdint>
+
+#include <catch2/catch_test_macros.hpp>
+#include <NyuTestUtil.hpp>
+
+#include <L1_Instruction_Cache.h>
 
 const int BLOCK_SIZE = 4;
 const int CACHE_SIZE = 1024; // 1 KB
@@ -114,3 +117,12 @@ private:
     }
 };
 
+static void init(auto& L1) {
+    L1.rstn = 1;
+    L1.clk = 0;
+    nyu::eval(L1);
+    L1.rstn = 0;
+    nyu::eval(L1);
+}
+
+static void read_eval(auto& L1, std::uint32_t request_address, std::uint32_t pc_in, std::int32_t ins_in) {

@@ -38,9 +38,8 @@ endmodule : sram_module
 module L1_Instruction_Cache(
     input clk,
     input rstn,
-    input write_enable, read_enable,
+    input  read_enable,
     input [31:0] request_address,
-    input [31:0] write_data,
     output logic [31:0] response_data,
     output logic [1:0] c_state,
     
