@@ -35,7 +35,7 @@ module sram_module(
     end 
 endmodule : sram_module
 
-module L1_Data_Cache(
+module L1_Instruction_Cache(
     input clk,
     input rstn,
     input write_enable, read_enable,
@@ -87,12 +87,13 @@ module L1_Data_Cache(
     current_address_t current_addr;
     
     reg [31:0] sram_read_data;
+    
     typedef struct packed{
         logic [31:0] write_data;
         logic write_enable;
         logic read_enable;
         logic way;
-        logic [8:0] index;
+        logic [INDEX_WIDTH-1:0] index;
 
     }sram_data_t;
 
