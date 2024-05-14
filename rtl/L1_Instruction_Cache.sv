@@ -10,7 +10,6 @@ module sram_module(
     localparam BLOCK_SIZE    = 4;         // 4 bytes since our Ins are 32-bit
     localparam CACHE_SIZE    = 4 * 256;  // 1 KB
     localparam ASSOCIATIVITY = 2;     
-    
     localparam BLOCK_WIDTH   = BLOCK_SIZE * 8; //32 bits
     localparam NUM_SETS      = CACHE_SIZE/(BLOCK_SIZE * ASSOCIATIVITY); //128 sets
     localparam ADDR_WIDTH    = 32; 
@@ -114,7 +113,6 @@ module L1_Instruction_Cache(
         reg [ASSOCIATIVITY-1:0] max_count;
         begin
             max_count = 0;
-            //max_count = -1; -1 here is 32'hFFFFFFFF turnication happens and max_count will be 3
             lru_way = 0;
             for (i = 0; i < ASSOCIATIVITY; i = i + 1) begin            
                 if (lru_counter[set_index][i] > max_count) begin
