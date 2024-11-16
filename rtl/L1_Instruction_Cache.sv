@@ -13,7 +13,8 @@ module Ins_sram_module(
     localparam BLOCK_WIDTH   = BLOCK_SIZE * 8; //32 bits
     localparam NUM_SETS      = CACHE_SIZE/(BLOCK_SIZE * ASSOCIATIVITY); //128 sets
     localparam ADDR_WIDTH    = 32; 
-
+    localparam INDEX_WIDTH   = $clog2(NUM_SETS);       // 7 bits
+    localparam WAY_WIDTH     = $clog2(ASSOCIATIVITY);  // 1 bit
     reg [BLOCK_WIDTH -1:0] memory_array [0:NUM_SETS * ASSOCIATIVITY - 1];
     wire [ADDR_WIDTH -1:0] actual_address = set_index * ASSOCIATIVITY + {31'b0, way_select};   
 
@@ -59,6 +60,8 @@ module L1_Instruction_Cache(
     localparam INDEX_WIDTH    = $clog2(NUM_SETS);       // 7 bits
     localparam TAG_WIDTH      = ADDR_WIDTH - INDEX_WIDTH;  // 25 bits
     localparam WAY_WIDTH = $clog2(ASSOCIATIVITY);
+    localparam LRU_WIDTH     = $clog2(ASSOCIATIVITY);     // 1 bit
+
     // Internal Variables
     
     reg [TAG_WIDTH - 1:0] cache_tags [0:NUM_SETS-1][0:ASSOCIATIVITY-1];
