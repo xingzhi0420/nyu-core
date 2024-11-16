@@ -32,7 +32,7 @@ module Ins_sram_module(
         end
         
     end 
-endmodule : ins_sram_module
+endmodule : Ins_sram_module
 
 module L1_Instruction_Cache(
     input clk,
@@ -97,7 +97,7 @@ module L1_Instruction_Cache(
 
     sram_data_t put_sram_data;
  
-    ins_sram_module cache_Ins_sram (
+    Ins_sram_module cache_Ins_sram (
         .clk(clk),
         .write_enable   (put_sram_data.write_enable),
         .read_enable    (put_sram_data.read_enable),
