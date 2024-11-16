@@ -1,8 +1,8 @@
 module Ins_sram_module(
     input clk,
     input write_enable, read_enable,
-    input [8:0] set_index, 
-    input way_select, 
+    input [INDEX_WIDTH - 1:0] set_index, 
+    input [WAY_WIDTH - 1:0] way_select, 
     input [31:0] write_data, 
     output logic [31:0] read_data  
 );
@@ -15,23 +15,19 @@ module Ins_sram_module(
     localparam ADDR_WIDTH    = 32; 
 
     reg [BLOCK_WIDTH -1:0] memory_array [0:NUM_SETS * ASSOCIATIVITY - 1];
-    wire [ADDR_WIDTH -1:0] actual_address = set_index * ASSOCIATIVITY + way_select;   
+    wire [ADDR_WIDTH -1:0] actual_address = set_index * ASSOCIATIVITY + {31'b0, way_select};   
 
 
     always @(posedge clk) begin
         if (write_enable) begin
-
             if (actual_address < (NUM_SETS * ASSOCIATIVITY)) 
             begin
                 memory_array[actual_address] <= write_data;
-            end
-                
-        end else if(read_enable)begin
-            if (actual_address < (NUM_SETS * ASSOCIATIVITY))
-                read_data = memory_array[actual_address];
+            end            
         end
-        
-    end 
+    end
+    assign read_data = (read_enable && actual_address < (NUM_SETS * ASSOCIATIVITY)) ? memory_array[actual_address] : 32'bz;
+
 endmodule : Ins_sram_module
 
 module L1_Instruction_Cache(
@@ -62,15 +58,15 @@ module L1_Instruction_Cache(
     // Calculating the number of bits for index, and tag
     localparam INDEX_WIDTH    = $clog2(NUM_SETS);       // 7 bits
     localparam TAG_WIDTH      = ADDR_WIDTH - INDEX_WIDTH;  // 25 bits
-  
+    localparam WAY_WIDTH = $clog2(ASSOCIATIVITY);
     // Internal Variables
     
     reg [TAG_WIDTH - 1:0] cache_tags [0:NUM_SETS-1][0:ASSOCIATIVITY-1];
     reg valid [0:NUM_SETS-1][0:ASSOCIATIVITY-1];
-    reg [ASSOCIATIVITY-1:0] lru_counter [0:NUM_SETS-1];
+    reg [LRU_WIDTH - 1 : 0] lru_counter [0 : NUM_SETS - 1][0 : ASSOCIATIVITY - 1];
     
     reg hit;
-    reg [ASSOCIATIVITY-1:0] way, lru_way;
+    reg [WAY_WIDTH - 1:0] way, lru_way;
     
     reg sram_read_req =0;
 
@@ -78,7 +74,7 @@ module L1_Instruction_Cache(
     cache_state_t state = IDLE;
 
     typedef struct packed{
-        logic [31:0] address;
+        logic [ADDR_WIDTH - 1:0] address;
         logic [TAG_WIDTH-1:0] tag;
         logic [INDEX_WIDTH-1:0] index;
     }current_address_t;
@@ -108,16 +104,16 @@ module L1_Instruction_Cache(
     );
      
     // LRU Function
-    function integer get_lru_way(input integer set_index);
+    function [WAY_WIDTH - 1 : 0] get_lru_way(input [INDEX_WIDTH - 1 : 0] set_index);
         integer i;
-        reg [ASSOCIATIVITY-1:0] max_count;
+        reg [LRU_WIDTH - 1 : 0] max_count;
         begin
             max_count = 0;
             lru_way = 0;
-            for (i = 0; i < ASSOCIATIVITY; i = i + 1) begin            
+            for (i = 0; i < ASSOCIATIVITY; i = i + 1) begin
                 if (lru_counter[set_index][i] > max_count) begin
                     max_count = lru_counter[set_index][i];
-                    lru_way = i;
+                    lru_way = i[WAY_WIDTH - 1 : 0];
                 end
             end
             get_lru_way = lru_way;
@@ -127,18 +123,17 @@ module L1_Instruction_Cache(
     // === === ===   Helper Tasks   === === ===
     task handle_cache_hit;
         begin
-            if (read_enable) begin
-                if(!sram_read_req) begin 
-                set_sram_read_request(current_addr.index, way);
+            if(!sram_read_req) begin 
+              set_sram_read_request(current_addr.index, way);
                 sram_read_req <= 1;
-                end else begin 
+            end else begin 
                 response_data <= sram_read_data;
                 sram_read_req <=0;
                 state <= IDLE;
-                end
             end
             update_lru_counters(current_addr.index, way);
         end
+
     endtask
 
     task handle_cache_miss;
@@ -177,18 +172,19 @@ module L1_Instruction_Cache(
         end
     endtask
     
-    task update_lru_counters(input integer set_index, input integer accessed_way);
+    task update_lru_counters(input [INDEX_WIDTH - 1 : 0] set_index, input [WAY_WIDTH - 1 : 0] accessed_way);
         integer i;
         begin
             for (i = 0; i < ASSOCIATIVITY; i = i + 1) begin
                 if (i == accessed_way) begin
                     lru_counter[set_index][i] <= 0;
-                end else if (lru_counter[set_index][i] != (ASSOCIATIVITY - 1)) begin
+                end else begin
                     lru_counter[set_index][i] <= lru_counter[set_index][i] + 1;
                 end
             end
         end
     endtask
+    
     
     //=== === ===   Cache Operation Tasks   === === ===
     task reset_cache;
@@ -200,8 +196,8 @@ module L1_Instruction_Cache(
                     //set_sram_write_request(i, j, 0, 2);
                     cache_tags[i][j] <= 0;
                     valid[i][j] <= 0;
-//                    lru_counter[i][j] <= j; // biased
-                    lru_counter[i][j] <= 1; 
+                    lru_counter[i][j] <= j[LRU_WIDTH - 1 : 0]; 
+                    //lru_counter[i][j] <= 1; 
                 end
             end
         end
