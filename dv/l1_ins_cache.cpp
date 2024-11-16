@@ -14,7 +14,7 @@ const int ADDR_WIDTH = 32;
 const int INDEX_WIDTH = 7;
 const int TAG_WIDTH = ADDR_WIDTH-INDEX_WIDTH;
 
-struct ram{
+struct ins_ram{
     std::uint32_t data[2048]={0};
     bool ready=1;
     std::uint32_t res_data=0;
@@ -57,7 +57,7 @@ public:
         }
     }
 
-    void accessCache(uint32_t address, bool write,bool read, uint32_t write_data,ram &mem) {
+    void accessCache(uint32_t address, bool write,bool read, uint32_t write_data,ins_ram &mem) {
         uint32_t tag = address >> (ADDR_WIDTH-TAG_WIDTH);
         uint32_t index = address  & ((1 << INDEX_WIDTH) - 1);
 
@@ -125,7 +125,7 @@ static void init(auto& L1) {
     nyu::eval(L1);
 }
 
-static void read_eval(auto& L1, CacheSimulator& sim_cache, ram& memory, std::uint32_t request_address) {
+static void read_eval(auto& L1, CacheSimulator& sim_cache, ins_ram& memory, std::uint32_t request_address) {
     // Set up initial conditions
     L1.read_enable = 1;
     L1.request_address = request_address;
@@ -181,7 +181,7 @@ TEST_CASE("Cache read test") {
     // Create instances
     L1_Instruction_Cache L1;
     CacheSimulator sim_cache;
-    ram memory;
+    ins_ram memory;
 
     // Initialize cache and memory
     init(L1);
