@@ -24,6 +24,7 @@
 | `response_data`     | DATA_WIDTH-bit   |
 | `mem_request`       | 1-bit            |
 | `mem_address`       | ADDR_WIDTH-bit   |
+| `c_state`           | 2-bit            |
 
 ## Functionality
 ### Registers
