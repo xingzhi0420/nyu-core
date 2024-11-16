@@ -55,7 +55,7 @@ nyu_target_verilate(tests
   # Failing
   # L1_Data_Cache
 
-  L1_Ins_Cache
+  L1_Instruction_Cache
 
   MEMWB
   PC  
