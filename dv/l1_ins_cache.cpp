@@ -3,7 +3,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <NyuTestUtil.hpp>
 
-#include <L1_Instruction_Cache.h>
+#include <L1_Ins_Cache.h>
 
 const int BLOCK_SIZE = 4;
 const int CACHE_SIZE = 1024; // 1 KB
