@@ -42,7 +42,7 @@ module L1_Instruction_Cache(
     // To LOWER MEMORY
     output logic mem_request,
     output logic [31:0] mem_address, 
-    output logic mem_write_enable,
+    //output logic mem_write_enable,
     input [31:0] mem_response_data,
     input mem_ready
 );
@@ -170,7 +170,7 @@ module L1_Instruction_Cache(
         input [31:0] address;
         begin
             mem_address <= address;
-            mem_write_enable <= 0;
+            //mem_write_enable <= 0;
             mem_request <= 1;
         end
     endtask
